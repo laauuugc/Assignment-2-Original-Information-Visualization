@@ -1,4 +1,4 @@
-Greenhouse Gas Emissions in Ireland — Data Processing
+**Greenhouse Gas Emissions in Ireland — Data Processing**
 
 This repository contains the data preparation workflow for Assignment 2: Develop a Novel Information Visualization, using the CSO High Value Dataset EAA17 (Greenhouse Gas Emissions).
 
