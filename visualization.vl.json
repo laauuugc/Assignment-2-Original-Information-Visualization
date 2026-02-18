@@ -1,0 +1,222 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "background": "#ffffff",
+  "title": {
+    "text": "Greenhouse Gas Emissions in Ireland by Economic Sector",
+    "subtitle": "CSO EAA17 — CO₂ Equivalent (kt)",
+    "anchor": "middle",
+    "fontSize": 20
+  },
+  "data": {
+    "url": "https://raw.githubusercontent.com/laauuugc/Assignment-2-Original-Information-Visualization/refs/heads/main/eaa17_processed.csv",
+    "format": {"type": "csv"}
+  },
+  "config": {
+    "axis": {
+      "gridColor": "#e6ece6",
+      "gridOpacity": 0.7,
+      "domainColor": "#cccccc",
+      "tickColor": "#cccccc"
+    },
+    "view": {"stroke": "transparent"}
+  },
+  "params": [
+    {
+      "name": "year_select",
+      "value": 2009,
+      "bind": {
+        "input": "range",
+        "min": 2009,
+        "max": 2023,
+        "step": 1,
+        "name": "Year: "
+      }
+    },
+    {
+      "name": "sector_highlight",
+      "select": {"type": "point", "fields": ["NACE Sector"]}
+    },
+    {
+      "name": "gas_filter",
+      "value": "Carbon dioxide (CO2)",
+      "bind": {
+        "input": "select",
+        "options": [
+          "Carbon dioxide (CO2)",
+          "Carbon dioxide from biomass (CO2_BIO)",
+          "Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)",
+          "Methane (CH4)",
+          "Methane in CO2 equivalent (CH4_CO2E)",
+          "Nitrous oxide in CO2 equivalent (N2O_CO2E)",
+          "Nitrous oxide (N2O)",
+          "Perfluorocarbons in CO2 equivalent (PFC_CO2E)",
+          "Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)",
+          "Total greenhouse gases in CO2 equivalent (GHG)"
+        ],
+        "name": "Gas Type: "
+      }
+    }
+  ],
+  "hconcat": [
+    {
+      "vconcat": [
+        {
+          "title": "Total Emissions Over Time",
+          "width": 450,
+          "height": 170,
+          "mark": {"type": "line", "strokeWidth": 3, "color": "#1b5e20"},
+          "encoding": {
+            "x": {"field": "Year", "type": "quantitative"},
+            "y": {
+              "aggregate": "sum",
+              "field": "Value",
+              "type": "quantitative",
+              "title": "Total Emissions (kt)"
+            },
+            "tooltip": [
+              {"field": "Year"},
+              {"aggregate": "sum", "field": "Value", "format": ",.0f"}
+            ]
+          }
+        },
+        {
+          "title": "Gas Composition Over Time (Share of Total Emissions)",
+          "width": 450,
+          "height": 190,
+          "mark": {"type": "area", "stroke": "#ffffff", "strokeWidth": 0.6},
+          "encoding": {
+            "x": {"field": "Year", "type": "quantitative", "title": "Year"},
+            "y": {
+              "aggregate": "sum",
+              "field": "Value",
+              "stack": "normalize",
+              "type": "quantitative",
+              "axis": {"format": ".0%", "title": "Share of Total Emissions"}
+            },
+            "color": {
+              "field": "Statistic Label",
+              "type": "nominal",
+              "legend": null,
+              "scale": {
+                "range": [
+                  "#1b5e20",
+                  "#2e7d32",
+                  "#66bb6a",
+                  "#ff8f00",
+                  "#8e24aa",
+                  "#c62828",
+                  "#00897b",
+                  "#6d4c41",
+                  "#3949ab",
+                  "#546e7a"
+                ]
+              }
+            },
+            "order": {
+              "aggregate": "sum",
+              "field": "Value",
+              "type": "quantitative",
+              "sort": "descending"
+            },
+            "tooltip": [
+              {"field": "Statistic Label", "type": "nominal", "title": "Gas"},
+              {
+                "aggregate": "sum",
+                "field": "Value",
+                "type": "quantitative",
+                "title": "Emissions (kt)",
+                "format": ",.0f"
+              },
+              {"field": "Year", "type": "quantitative"}
+            ]
+          }
+        },
+        {
+          "title": "Top 6 Sectors (Selected Year)",
+          "width": 450,
+          "height": 240,
+          "transform": [
+            {"filter": "datum.Year == year_select"},
+            {
+              "aggregate": [{"op": "sum", "field": "Value", "as": "Emissions"}],
+              "groupby": ["NACE Sector"]
+            },
+            {
+              "window": [{"op": "rank", "as": "rank"}],
+              "sort": [{"field": "Emissions", "order": "descending"}]
+            },
+            {"filter": "datum.rank <= 6"}
+          ],
+          "mark": "bar",
+          "encoding": {
+            "y": {"field": "NACE Sector", "type": "nominal", "sort": "-x"},
+            "x": {
+              "field": "Emissions",
+              "type": "quantitative",
+              "title": "Emissions (kt)"
+            },
+            "color": {
+              "condition": {"param": "sector_highlight", "value": "#1b5e20"},
+              "value": "#a5d6a7"
+            },
+            "opacity": {
+              "condition": {"param": "sector_highlight", "value": 1},
+              "value": 0.6
+            },
+            "tooltip": [
+              {"field": "NACE Sector"},
+              {"field": "Emissions", "format": ",.0f"}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Structural Change (% First vs Last Year)",
+      "width": 550,
+      "height": 725,
+      "transform": [
+        {"filter": "datum['Statistic Label'] == gas_filter"},
+        {
+          "aggregate": [{"op": "sum", "field": "Value", "as": "Emissions"}],
+          "groupby": ["NACE Sector", "Year"]
+        },
+        {
+          "window": [
+            {"op": "first_value", "field": "Emissions", "as": "Start"},
+            {"op": "last_value", "field": "Emissions", "as": "End"}
+          ],
+          "groupby": ["NACE Sector"],
+          "sort": [{"field": "Year"}],
+          "frame": [null, null]
+        },
+        {
+          "calculate": "(datum.End - datum.Start) / datum.Start * 100",
+          "as": "PercentChange"
+        }
+      ],
+      "mark": "bar",
+      "encoding": {
+        "y": {"field": "NACE Sector", "type": "nominal", "sort": "-x"},
+        "x": {
+          "field": "PercentChange",
+          "type": "quantitative",
+          "title": "% Change"
+        },
+        "color": {
+          "condition": {"test": "datum.PercentChange < 0", "value": "#2e7d32"},
+          "value": "#8b0000"
+        },
+        "opacity": {
+          "condition": {"param": "sector_highlight", "value": 1},
+          "value": 0.5
+        },
+        "tooltip": [
+          {"field": "NACE Sector"},
+          {"field": "PercentChange", "format": ".2f"}
+        ]
+      }
+    }
+  ],
+  "spacing": 30
+}
