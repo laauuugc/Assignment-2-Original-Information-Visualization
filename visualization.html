@@ -142,11 +142,14 @@
           }
         },
         {
-          "title": "Top 6 Sectors (Selected Year)",
+          "title": "Top 7 Sectors (Selected Year)",
           "width": 450,
           "height": 240,
           "transform": [
             {"filter": "datum.Year == year_select"},
+            {
+              "filter": "datum['NACE Sector'] != 'Total NACE activities' && datum['NACE Sector'] != 'Total NACE and Household activities' && datum['NACE Sector'] != 'Total Household activities'"
+            },
             {
               "aggregate": [{"op": "sum", "field": "Value", "as": "Emissions"}],
               "groupby": ["NACE Sector"]
@@ -155,7 +158,7 @@
               "window": [{"op": "rank", "as": "rank"}],
               "sort": [{"field": "Emissions", "order": "descending"}]
             },
-            {"filter": "datum.rank <= 6"}
+            {"filter": "datum.rank <= 7"}
           ],
           "mark": "bar",
           "encoding": {
