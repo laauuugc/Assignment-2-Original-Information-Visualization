@@ -63,7 +63,7 @@
         {
           "title": "Total Emissions Over Time",
           "width": 450,
-          "height": 170,
+          "height": 190,
           "mark": {"type": "line", "strokeWidth": 3, "color": "#1b5e20"},
           "encoding": {
             "x": {"field": "Year", "type": "quantitative"},
@@ -134,7 +134,7 @@
         {
           "title": "Top 7 Sectors (Selected Year)",
           "width": 450,
-          "height": 240,
+          "height": 190,
           "transform": [
             {"filter": "datum.Year == year_select"},
             {
@@ -176,7 +176,7 @@
     },
     {
       "title": "Structural Change (% First vs Last Year)",
-      "width": 550,
+      "width": 450,
       "height": 725,
       "transform": [
         {"filter": "datum['Statistic Label'] == gas_filter"},
