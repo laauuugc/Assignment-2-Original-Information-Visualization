@@ -73,8 +73,13 @@
         {
           "title": "Total Emissions Over Time",
           "width": 450,
-          "height": 190,
+          "height": 170,
           "mark": {"type": "line", "strokeWidth": 3, "color": "#1b5e20"},
+          "transform": [
+            {
+              "filter": "datum['Statistic Label'] != 'Total greenhouse gases in CO2 equivalent (GHG)'"
+            }
+          ],
           "encoding": {
             "x": {"field": "Year", "type": "quantitative"},
             "y": {
@@ -92,8 +97,13 @@
         {
           "title": "Gas Composition Over Time (Share of Total Emissions)",
           "width": 450,
-          "height": 190,
+          "height": 215,
           "mark": {"type": "area", "stroke": "#ffffff", "strokeWidth": 0.6},
+          "transform": [
+            {
+              "filter": "datum['Statistic Label'] != 'Total greenhouse gases in CO2 equivalent (GHG)'"
+            }
+          ],
           "encoding": {
             "x": {"field": "Year", "type": "quantitative", "title": "Year"},
             "y": {
