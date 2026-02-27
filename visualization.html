@@ -13,55 +13,92 @@
   "background": "#ffffff",
   "title": {
     "text": "Greenhouse Gas Emissions in Ireland by Economic Sector",
-    "subtitle": "CSO EAA17 CO2 Equivalent (kt)",
+    "subtitle": "Source: CSO Environmental Accounts EAA17 - CO2 Equivalent (kilotonnes) - 2009/2023",
     "anchor": "middle",
-    "fontSize": 20
+    "fontSize": 22,
+    "subtitleFontSize": 12,
+    "subtitleColor": "#6b7280",
+    "subtitlePadding": 6,
+    "font": "Georgia, serif",
+    "color": "#111827",
+    "dy": -5
   },
   "data": {
     "url": "https://raw.githubusercontent.com/laauuugc/Assignment-2-Original-Information-Visualization/refs/heads/main/eaa17_processed.csv",
     "format": {"type": "csv"}
   },
   "config": {
+    "font": "system-ui, sans-serif",
     "axis": {
-      "gridColor": "#e6ece6",
-      "gridOpacity": 0.7,
-      "domainColor": "#cccccc",
-      "tickColor": "#cccccc"
+      "gridColor": "#e5e7eb",
+      "gridOpacity": 0.8,
+      "domainColor": "#d1d5db",
+      "tickColor": "#d1d5db",
+      "labelFontSize": 11,
+      "titleFontSize": 12,
+      "titleColor": "#374151",
+      "labelColor": "#6b7280",
+      "titlePadding": 8
     },
-    "view": {"stroke": "transparent"}
+    "view": {"stroke": "transparent", "fill": "#ffffff"},
+    "title": {
+      "fontSize": 13,
+      "fontWeight": 600,
+      "color": "#1f2937",
+      "anchor": "start",
+      "dy": -4
+    },
+    "legend": {
+      "labelFontSize": 11,
+      "titleFontSize": 12,
+      "titleColor": "#374151",
+      "labelColor": "#4b5563",
+      "padding": 6,
+      "columnPadding": 10,
+      "symbolSize": 120
+    },
+    "mark": {"tooltip": true}
   },
   "params": [
     {
       "name": "year_select",
-      "value": 2009,
+      "value": 2022,
       "bind": {
         "input": "range",
         "min": 2009,
         "max": 2023,
         "step": 1,
-        "name": "Year: "
+        "name": "Selected Year: "
       }
     },
     {
-      "name": "sector_highlight",
-      "select": {"type": "point", "fields": ["NACE Sector"]}
-    },
-    {
       "name": "gas_filter",
-      "value": "Carbon dioxide (CO2)",
+      "value": "Total greenhouse gases in CO2 equivalent (GHG)",
       "bind": {
         "input": "select",
         "options": [
+          "Total greenhouse gases in CO2 equivalent (GHG)",
           "Carbon dioxide (CO2)",
-          "Carbon dioxide from biomass (CO2_BIO)",
-          "Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)",
-          "Methane (CH4)",
           "Methane in CO2 equivalent (CH4_CO2E)",
           "Nitrous oxide in CO2 equivalent (N2O_CO2E)",
-          "Nitrous oxide (N2O)",
+          "Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)",
           "Perfluorocarbons in CO2 equivalent (PFC_CO2E)",
           "Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)",
-          "Total greenhouse gases in CO2 equivalent (GHG)"
+          "Carbon dioxide from biomass (CO2_BIO)",
+          "Methane (CH4)",
+          "Nitrous oxide (N2O)"
+        ],
+        "labels": [
+          "Total GHG (CO₂ equivalent)",
+          "Carbon Dioxide (CO₂)",
+          "Methane (CH₄ in CO₂e)",
+          "Nitrous Oxide (N₂O in CO₂e)",
+          "HFCs (CO₂ equivalent)",
+          "PFCs (CO₂ equivalent)",
+          "SF₆ & NF₃ (CO₂ equivalent)",
+          "CO₂ from Biomass",
+          "Methane (CH₄)",
+          "Nitrous Oxide (N₂O)"
         ],
         "name": "Gas Type: "
       }
@@ -71,65 +108,242 @@
     {
       "vconcat": [
         {
-          "title": "Total Emissions Over Time",
-          "width": 450,
-          "height": 170,
-          "mark": {"type": "line", "strokeWidth": 3, "color": "#1b5e20"},
-          "transform": [
+          "title": {
+            "text": "Total GHG Emissions Over Time (All Sectors)",
+            "subtitle": "Excluding total GHG label to avoid double-counting",
+            "anchor": "middle"
+          },
+          "width": 460,
+          "height": 160,
+          "layer": [
             {
-              "filter": "datum['Statistic Label'] != 'Total greenhouse gases in CO2 equivalent (GHG)'"
-            }
-          ],
-          "encoding": {
-            "x": {"field": "Year", "type": "quantitative"},
-            "y": {
-              "aggregate": "sum",
-              "field": "Value",
-              "type": "quantitative",
-              "title": "Total Emissions (kt)"
+              "mark": {"type": "line", "color": "#065f46", "strokeWidth": 2},
+              "transform": [
+                {
+                  "filter": "datum['Statistic Label'] == 'Total greenhouse gases in CO2 equivalent (GHG)'"
+                },
+                {
+                  "filter": "datum['NACE Sector'] == 'Total NACE and Household activities'"
+                }
+              ],
+              "encoding": {
+                "x": {
+                  "field": "Year",
+                  "type": "quantitative",
+                  "axis": {"tickCount": 15, "format": "d", "title": null}
+                },
+                "y": {
+                  "aggregate": "sum",
+                  "field": "Value",
+                  "type": "quantitative",
+                  "title": "Total Emissions (kt CO₂e)",
+                  "axis": {"format": ",.0f"}
+                },
+                "tooltip": [
+                  {"field": "Year", "type": "quantitative", "title": "Year"},
+                  {
+                    "aggregate": "sum",
+                    "field": "Value",
+                    "type": "quantitative",
+                    "title": "Total GHG (kt CO₂e)",
+                    "format": ",.0f"
+                  }
+                ]
+              }
             },
-            "tooltip": [
-              {"field": "Year"},
-              {"aggregate": "sum", "field": "Value", "format": ",.0f"}
-            ]
-          }
+            {
+              "mark": {
+                "type": "rule",
+                "color": "#dc2626",
+                "strokeDash": [4, 3],
+                "strokeWidth": 1.5,
+                "opacity": 0.7
+              },
+              "data": {"values": [{"year": 2015}]},
+              "encoding": {
+                "x": {"field": "year", "type": "quantitative"},
+                "tooltip": [
+                  {"field": "year", "title": "Paris Agreement Signed"}
+                ]
+              }
+            },
+            {
+              "mark": {
+                "type": "text",
+                "align": "left",
+                "dx": 3,
+                "dy": -30,
+                "fontSize": 10,
+                "color": "#dc2626",
+                "fontStyle": "italic"
+              },
+              "data": {"values": [{"year": 2015, "label": "Paris Agreement"}]},
+              "encoding": {
+                "x": {"field": "year", "type": "quantitative"},
+                "text": {"field": "label"}
+              }
+            },
+            {
+              "mark": {
+                "type": "rule",
+                "color": "#7c3aed",
+                "strokeDash": [4, 3],
+                "strokeWidth": 1.5,
+                "opacity": 0.7
+              },
+              "data": {"values": [{"year": 2020}]},
+              "encoding": {
+                "x": {"field": "year", "type": "quantitative"},
+                "tooltip": [{"field": "year", "title": "COVID-19 Pandemic"}]
+              }
+            },
+            {
+              "mark": {
+                "type": "text",
+                "align": "left",
+                "dx": 3,
+                "dy": -30,
+                "fontSize": 10,
+                "color": "#7c3aed",
+                "fontStyle": "italic"
+              },
+              "data": {"values": [{"year": 2020, "label": "COVID-19"}]},
+              "encoding": {
+                "x": {"field": "year", "type": "quantitative"},
+                "text": {"field": "label"}
+              }
+            }
+          ]
         },
         {
-          "title": "Gas Composition Over Time (Share of Total Emissions)",
-          "width": 450,
-          "height": 215,
+          "title": {
+            "text": "Top 7 Emitting Sectors (Selected Year)",
+            "subtitle": "Click a bar to highlight that sector across all charts · Double-click to reset · Filter year below",
+            "anchor": "middle"
+          },
+          "width": 460,
+          "height": 160,
+          "transform": [
+            {"filter": "datum.Year == year_select"},
+            {
+              "filter": "datum['Statistic Label'] == 'Total greenhouse gases in CO2 equivalent (GHG)'"
+            },
+            {
+              "filter": "datum['NACE Sector'] != 'Total NACE activities' && datum['NACE Sector'] != 'Total NACE and Household activities' && datum['NACE Sector'] != 'Total Household activities'"
+            },
+            {
+              "aggregate": [{"op": "sum", "field": "Value", "as": "Emissions"}],
+              "groupby": ["NACE Sector"]
+            },
+            {
+              "window": [{"op": "rank", "as": "rank"}],
+              "sort": [{"field": "Emissions", "order": "descending"}]
+            },
+            {"filter": "datum.rank <= 7"}
+          ],
+          "mark": {"type": "bar", "cornerRadiusEnd": 3},
+          "encoding": {
+            "y": {
+              "field": "NACE Sector",
+              "type": "nominal",
+              "sort": "-x",
+              "axis": {"labelLimit": 200, "title": null}
+            },
+            "x": {
+              "field": "Emissions",
+              "type": "quantitative",
+              "title": "Total GHG Emissions (kt CO₂e)",
+              "axis": {"format": ",.0f"}
+            },
+            "color": {
+              "condition": {"param": "sector_highlight", "value": "#065f46"},
+              "value": "#6ee7b7"
+            },
+            "opacity": {
+              "condition": {"param": "sector_highlight", "value": 1},
+              "value": 0.55
+            },
+            "tooltip": [
+              {"field": "NACE Sector", "title": "Sector"},
+              {
+                "field": "Emissions",
+                "format": ",.0f",
+                "title": "GHG Emissions (kt CO₂e)"
+              },
+              {"field": "rank", "title": "Rank"}
+            ]
+          },
+          "params": [
+            {
+              "name": "sector_highlight",
+              "select": {
+                "type": "point",
+                "fields": ["NACE Sector"],
+                "on": "click",
+                "clear": "dblclick"
+              }
+            }
+          ]
+        },
+        {
+          "title": {
+            "text": "Gas Composition Over Time (Share of Total)",
+            "subtitle": "Excluding total GHG label to avoid double-counting",
+            "anchor": "middle"
+          },
+          "width": 460,
+          "height": 210,
           "mark": {"type": "area", "stroke": "#ffffff", "strokeWidth": 0.6},
           "transform": [
             {
-              "filter": "datum['Statistic Label'] != 'Total greenhouse gases in CO2 equivalent (GHG)'"
+              "filter": "datum['Statistic Label'] != 'Total greenhouse gases in CO2 equivalent (GHG)' && datum['Statistic Label'] != 'Carbon dioxide from biomass (CO2_BIO)' && datum['Statistic Label'] != 'Methane (CH4)' && datum['Statistic Label'] != 'Nitrous oxide (N2O)'"
+            },
+            {
+              "filter": "datum['NACE Sector'] == 'Total NACE and Household activities'"
             }
           ],
           "encoding": {
-            "x": {"field": "Year", "type": "quantitative", "title": "Year"},
+            "x": {
+              "field": "Year",
+              "type": "quantitative",
+              "axis": {"tickCount": 15, "format": "d", "title": "Year"}
+            },
             "y": {
               "aggregate": "sum",
               "field": "Value",
               "stack": "normalize",
               "type": "quantitative",
-              "axis": {"format": ".0%", "title": "Share of Total Emissions"}
+              "axis": {"format": ".0%", "title": "Share of Total GHG"}
             },
             "color": {
               "field": "Statistic Label",
               "type": "nominal",
-              "legend": null,
+              "title": "Gas Type",
               "scale": {
+                "domain": [
+                  "Carbon dioxide (CO2)",
+                  "Methane in CO2 equivalent (CH4_CO2E)",
+                  "Nitrous oxide in CO2 equivalent (N2O_CO2E)",
+                  "Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)",
+                  "Perfluorocarbons in CO2 equivalent (PFC_CO2E)",
+                  "Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)"
+                ],
                 "range": [
-                  "#1b5e20",
-                  "#2e7d32",
-                  "#66bb6a",
-                  "#ff8f00",
-                  "#8e24aa",
-                  "#c62828",
-                  "#00897b",
-                  "#6d4c41",
-                  "#3949ab",
-                  "#546e7a"
+                  "#065f46",
+                  "#0891b2",
+                  "#d97706",
+                  "#7c3aed",
+                  "#be123c",
+                  "#475569"
                 ]
+              },
+              "legend": {
+                "title": "Gas Type",
+                "labelLimit": 320,
+                "labelExpr": "{'Carbon dioxide (CO2)': 'CO₂', 'Methane in CO2 equivalent (CH4_CO2E)': 'CH₄ (CO₂e)', 'Nitrous oxide in CO2 equivalent (N2O_CO2E)': 'N₂O (CO₂e)', 'Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)': 'HFCs', 'Perfluorocarbons in CO2 equivalent (PFC_CO2E)': 'PFCs', 'Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)': 'SF₆ & NF₃'}[datum.label] || datum.label",
+                "orient": "bottom",
+                "columns": 3,
+                "direction": "horizontal"
               }
             },
             "order": {
@@ -144,104 +358,123 @@
                 "aggregate": "sum",
                 "field": "Value",
                 "type": "quantitative",
-                "title": "Emissions (kt)",
+                "title": "Emissions (kt CO₂e)",
                 "format": ",.0f"
               },
               {"field": "Year", "type": "quantitative"}
             ]
           }
-        },
+        }
+      ],
+      "spacing": 28
+    },
+    {
+      "vconcat": [
         {
-          "title": "Top 7 Sectors (Selected Year)",
-          "width": 450,
-          "height": 190,
+          "title": {
+            "text": "Structural Change: % Change vs. 2009 Baseline",
+            "subtitle": "Red = increased · Green = decreased · Filter gas type below",
+            "anchor": "middle"
+          },
+          "width": 400,
+          "height": 725,
           "transform": [
-            {"filter": "datum.Year == year_select"},
+            {"filter": "datum['Statistic Label'] == gas_filter"},
             {
               "filter": "datum['NACE Sector'] != 'Total NACE activities' && datum['NACE Sector'] != 'Total NACE and Household activities' && datum['NACE Sector'] != 'Total Household activities'"
             },
             {
               "aggregate": [{"op": "sum", "field": "Value", "as": "Emissions"}],
-              "groupby": ["NACE Sector"]
+              "groupby": ["NACE Sector", "Year"]
+            },
+            {
+              "window": [
+                {"op": "first_value", "field": "Emissions", "as": "Start"},
+                {"op": "last_value", "field": "Emissions", "as": "End"}
+              ],
+              "groupby": ["NACE Sector"],
+              "sort": [{"field": "Year"}],
+              "frame": [null, null]
+            },
+            {
+              "calculate": "datum.Start == 0 ? 0 : (datum.End - datum.Start) / datum.Start * 100",
+              "as": "PercentChange"
             },
             {
               "window": [{"op": "rank", "as": "rank"}],
-              "sort": [{"field": "Emissions", "order": "descending"}]
-            },
-            {"filter": "datum.rank <= 7"}
+              "sort": [{"field": "PercentChange", "order": "descending"}]
+            }
           ],
-          "mark": "bar",
-          "encoding": {
-            "y": {"field": "NACE Sector", "type": "nominal", "sort": "-x"},
-            "x": {
-              "field": "Emissions",
-              "type": "quantitative",
-              "title": "Emissions (kt)"
+          "layer": [
+            {
+              "mark": {"type": "rule", "color": "#9ca3af", "strokeWidth": 1},
+              "encoding": {"x": {"datum": 0}}
             },
-            "color": {
-              "condition": {"param": "sector_highlight", "value": "#1b5e20"},
-              "value": "#a5d6a7"
-            },
-            "opacity": {
-              "condition": {"param": "sector_highlight", "value": 1},
-              "value": 0.6
-            },
-            "tooltip": [
-              {"field": "NACE Sector"},
-              {"field": "Emissions", "format": ",.0f"}
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "title": "Structural Change (% First vs Last Year)",
-      "width": 450,
-      "height": 725,
-      "transform": [
-        {"filter": "datum['Statistic Label'] == gas_filter"},
-        {
-          "aggregate": [{"op": "sum", "field": "Value", "as": "Emissions"}],
-          "groupby": ["NACE Sector", "Year"]
-        },
-        {
-          "window": [
-            {"op": "first_value", "field": "Emissions", "as": "Start"},
-            {"op": "last_value", "field": "Emissions", "as": "End"}
-          ],
-          "groupby": ["NACE Sector"],
-          "sort": [{"field": "Year"}],
-          "frame": [null, null]
-        },
-        {
-          "calculate": "(datum.End - datum.Start) / datum.Start * 100",
-          "as": "PercentChange"
+            {
+              "mark": {"type": "bar", "cornerRadiusEnd": 3},
+              "encoding": {
+                "y": {
+                  "field": "NACE Sector",
+                  "type": "nominal",
+                  "sort": {"field": "PercentChange", "order": "descending"},
+                  "axis": {
+                    "labelLimit": 220,
+                    "title": null,
+                    "ticks": false,
+                    "domain": false,
+                    "labelFontSize": 10
+                  }
+                },
+                "x": {
+                  "field": "PercentChange",
+                  "type": "quantitative",
+                  "title": "% Change from 2009 to 2023",
+                  "axis": {
+                    "format": ".0f",
+                    "labelExpr": "datum.value + '%'",
+                    "grid": true,
+                    "gridColor": "#e5e7eb",
+                    "gridOpacity": 0.9,
+                    "gridDash": [3, 2]
+                  }
+                },
+                "color": {
+                  "condition": [
+                    {"test": "datum.PercentChange < 0", "value": "#065f46"}
+                  ],
+                  "value": "#b91c1c"
+                },
+                "opacity": {
+                  "condition": {"param": "sector_highlight", "value": 1},
+                  "value": 0.45
+                },
+                "tooltip": [
+                  {"field": "NACE Sector", "title": "Sector"},
+                  {
+                    "field": "PercentChange",
+                    "format": ".1f",
+                    "title": "% Change (2009→2023)"
+                  },
+                  {
+                    "field": "Start",
+                    "format": ",.0f",
+                    "title": "2009 Emissions (kt)"
+                  },
+                  {
+                    "field": "End",
+                    "format": ",.0f",
+                    "title": "2023 Emissions (kt)"
+                  }
+                ]
+              }
+            }
+          ]
         }
       ],
-      "mark": "bar",
-      "encoding": {
-        "y": {"field": "NACE Sector", "type": "nominal", "sort": "-x"},
-        "x": {
-          "field": "PercentChange",
-          "type": "quantitative",
-          "title": "% Change"
-        },
-        "color": {
-          "condition": {"test": "datum.PercentChange < 0", "value": "#2e7d32"},
-          "value": "#8b0000"
-        },
-        "opacity": {
-          "condition": {"param": "sector_highlight", "value": 1},
-          "value": 0.5
-        },
-        "tooltip": [
-          {"field": "NACE Sector"},
-          {"field": "PercentChange", "format": ".2f"}
-        ]
-      }
+      "spacing": 28
     }
   ],
-  "spacing": 30
+  "spacing": 36
 };
     vegaEmbed("#vis", spec, {mode: "vega-lite"}).then(console.log).catch(console.warn);
   </script>
