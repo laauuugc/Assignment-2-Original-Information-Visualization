@@ -136,7 +136,7 @@
                   "aggregate": "sum",
                   "field": "Value",
                   "type": "quantitative",
-                  "title": "Total Emissions (kt COâ‚‚e)",
+                  "title": "Total Emissions (kt CO2 equivalent)",
                   "axis": {"format": ",.0f"}
                 },
                 "tooltip": [
@@ -218,7 +218,7 @@
         {
           "title": {
             "text": "Top 7 Emitting Sectors (Selected Year)",
-            "subtitle": "Click a bar to highlight that sector across all charts Â· Double-click to reset Â· Filter year below",
+            "subtitle": "Click a bar to highlight that sector across all charts - Double-click to reset - Filter year below",
             "anchor": "middle"
           },
           "width": 460,
@@ -252,7 +252,7 @@
             "x": {
               "field": "Emissions",
               "type": "quantitative",
-              "title": "Total GHG Emissions (kt COâ‚‚e)",
+              "title": "Total GHG Emissions (kt CO2 equivalent)",
               "axis": {"format": ",.0f"}
             },
             "color": {
@@ -268,7 +268,7 @@
               {
                 "field": "Emissions",
                 "format": ",.0f",
-                "title": "GHG Emissions (kt COâ‚‚e)"
+                "title": "GHG Emissions (kt CO2 equivalent)"
               },
               {"field": "rank", "title": "Rank"}
             ]
@@ -340,7 +340,7 @@
               "legend": {
                 "title": "Gas Type",
                 "labelLimit": 320,
-                "labelExpr": "{'Carbon dioxide (CO2)': 'CO2', 'Methane in CO2 equivalent (CH4_CO2E)': 'CH4 (CO2e)', 'Nitrous oxide in CO2 equivalent (N2O_CO2E)': 'N2O (CO2e)', 'Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)': 'HFCs', 'Perfluorocarbons in CO2 equivalent (PFC_CO2E)': 'PFCs', 'Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)': 'SF6 & NF3'}[datum.label] || datum.label",
+                "labelExpr": "{'Carbon dioxide (CO2)': 'CO2', 'Methane in CO2 equivalent (CH4_CO2E)': 'CH4 (CO2e)', 'Nitrous oxide in CO2 equivalent (N2O_CO2E)': 'N2O (CO2e)', 'Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)': 'HFCs (CO2e)', 'Perfluorocarbons in CO2 equivalent (PFC_CO2E)': 'PFCs (CO2e)', 'Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)': 'SF6 & NF3 (CO2e)'}[datum.label] || datum.label",
                 "orient": "bottom",
                 "columns": 3,
                 "direction": "horizontal"
@@ -358,7 +358,7 @@
                 "aggregate": "sum",
                 "field": "Value",
                 "type": "quantitative",
-                "title": "Emissions (kt COâ‚‚e)",
+                "title": "Emissions (kt CO2 equivalent)",
                 "format": ",.0f"
               },
               {"field": "Year", "type": "quantitative"}
@@ -373,7 +373,7 @@
         {
           "title": {
             "text": "Structural Change: % Change vs. 2009 Baseline",
-            "subtitle": "Red = increased Â· Green = decreased Â· Filter gas type below",
+            "subtitle": "Red = increased - Green = decreased - Filter gas type below",
             "anchor": "middle"
           },
           "width": 400,
@@ -453,7 +453,7 @@
                   {
                     "field": "PercentChange",
                     "format": ".1f",
-                    "title": "% Change (2009â†’2023)"
+                    "title": "% Change (2009 to 2023)"
                   },
                   {
                     "field": "Start",
