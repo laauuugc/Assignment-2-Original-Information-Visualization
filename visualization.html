@@ -1,482 +1,971 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <title>Ireland GHG Emissions Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/vega@6.2.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@6.4.1"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-embed@7.1.0"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-deep: #065f46;
+      --green-mid: #059669;
+      --green-light: #6ee7b7;
+      --green-pale: #ecfdf5;
+      --red-deep: #991b1b;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-600: #475569;
+      --slate-400: #94a3b8;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --slate-50: #f8fafc;
+      --white: #ffffff;
+      --border: rgba(15,23,42,0.08);
+      --shadow-sm: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+      --shadow-md: 0 4px 12px rgba(15,23,42,0.08), 0 2px 4px rgba(15,23,42,0.04);
+      --shadow-lg: 0 12px 32px rgba(15,23,42,0.10), 0 4px 8px rgba(15,23,42,0.05);
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--slate-50);
+      color: var(--slate-900);
+      min-height: 100vh;
+    }
+
+    /* ── HERO HEADER ─────────────────────────────────────────────────── */
+    .hero {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 48px 36px;
+    }
+
+    .hero-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--green-mid);
+      background: var(--green-pale);
+      border: 1px solid rgba(5,150,105,0.2);
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green-mid);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(26px, 3vw, 40px);
+      font-weight: 800;
+      color: var(--slate-900);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      max-width: none;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--green-deep);
+    }
+
+    .hero-sub {
+      font-size: 14px;
+      color: var(--slate-600);
+      line-height: 1.6;
+      max-width: none;
+    }
+
+    /* ── INFO CARDS ─────────────────────────────────────────────────── */
+    .info-grid {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 48px 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .info-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .info-card h2 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate-900);
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .info-card p, .info-card li {
+      font-size: 12.5px;
+      color: var(--slate-600);
+      line-height: 1.55;
+    }
+
+    .info-card ul {
+      padding-left: 14px;
+      margin-top: 4px;
+    }
+
+    .info-card li { margin-bottom: 3px; }
+
+    .info-card .hint {
+      font-size: 11px;
+      color: var(--slate-400);
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--slate-200);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--green-deep);
+      background: var(--green-pale);
+      border: 1px solid rgba(6,95,70,0.15);
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+
+    /* ── STICKY CONTROLS ────────────────────────────────────────────── */
+    .controls-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .controls-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 10px 48px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      align-items: center;
+    }
+
+    .controls-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--slate-400);
+      margin-right: 4px;
+    }
+
+    /* Vega control overrides */
+    .vega-bindings {
+      display: contents;
+    }
+
+    .vega-bind {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--slate-800);
+    }
+
+    .vega-bind label {
+      font-weight: 500;
+      white-space: nowrap;
+      color: var(--slate-600);
+    }
+
+    .vega-bind input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 180px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--slate-200);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .vega-bind input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: var(--green-deep);
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px rgba(6,95,70,0.25);
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .vega-bind input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 0 1px rgba(6,95,70,0.3), 0 0 0 5px rgba(6,95,70,0.1);
+    }
+
+    .vega-bind select {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      padding: 5px 28px 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--slate-200);
+      background: var(--white);
+      color: var(--slate-900);
+      cursor: pointer;
+      outline: none;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394a3b8'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    .vega-bind select:focus {
+      border-color: var(--green-mid);
+      box-shadow: 0 0 0 3px rgba(5,150,105,0.12);
+    }
+
+    /* ── MAIN CONTENT ───────────────────────────────────────────────── */
+    .main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 48px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Each "row" of charts */
+    .chart-row {
+      display: grid;
+      gap: 20px;
+    }
+
+    .row-1col { grid-template-columns: 1fr; }
+    .row-2col { grid-template-columns: 1fr 1fr; }
+    .row-3col { grid-template-columns: 1fr 1fr 1fr; }
+    .row-2-1 { grid-template-columns: 1.55fr 1fr; }
+    .row-1-2 { grid-template-columns: 1fr 1.55fr; }
+
+    /* Chart card */
+    .chart-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 20px 14px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.45s ease forwards;
+    }
+
+    .chart-card:nth-child(1) { animation-delay: 0.05s; }
+    .chart-card:nth-child(2) { animation-delay: 0.12s; }
+    .chart-card:nth-child(3) { animation-delay: 0.19s; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chart-card .card-header {
+      margin-bottom: 10px;
+    }
+
+    .chart-card .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate-900);
+      letter-spacing: -0.01em;
+    }
+
+    .chart-card .card-sub {
+      font-size: 11.5px;
+      color: var(--slate-400);
+      margin-top: 2px;
+    }
+
+    .vis-container {
+      width: 100%;
+      min-height: 0;
+    }
+    .vis-container > div { width: 100% !important; max-width: 100%; }
+    .chart-row.row-2col .chart-card { min-width: 0; }
+    .chart-row.row-charts-tall .vis-container { min-height: 540px; }
+
+    /* ── INSIGHT BANNER ─────────────────────────────────────────────── */
+    .insight-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+
+    .insight-chip {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      box-shadow: var(--shadow-sm);
+      border-left: 3px solid var(--green-deep);
+    }
+
+    .insight-chip.red { border-left-color: var(--red-deep); }
+
+    .insight-chip .i-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--slate-400);
+      margin-bottom: 4px;
+    }
+
+    .insight-chip .i-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--slate-900);
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .insight-chip .i-desc {
+      font-size: 11.5px;
+      color: var(--slate-600);
+    }
+
+    /* ── FOOTER ─────────────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 20px 48px 32px;
+      font-size: 11.5px;
+      color: var(--slate-400);
+      border-top: 1px solid var(--border);
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ── RESPONSIVE ─────────────────────────────────────────────────── */
+    @media (max-width: 1100px) {
+      .hero, .info-grid, .controls-inner, .main, .insight-strip, .footer {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+      .row-2col, .row-3col, .row-2-1, .row-1-2, .info-grid, .insight-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div id="vis"/>
-  <script>
-    const spec = {
-  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-  "background": "#ffffff",
-  "title": {
-    "text": "Greenhouse Gas Emissions in Ireland by Economic Sector",
-    "subtitle": "Source: CSO Environmental Accounts EAA17 - CO2 Equivalent (kilotonnes) - 2009/2023",
-    "anchor": "middle",
-    "fontSize": 22,
-    "subtitleFontSize": 12,
-    "subtitleColor": "#6b7280",
-    "subtitlePadding": 6,
-    "font": "Georgia, serif",
-    "color": "#111827",
-    "dy": -5
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">CSO EAA17 · High Value Dataset</div>
+    <h1>How have Ireland's <em>Greenhouse Gas Emissions </em>evolved by economic sector?</h1>
+    <p class="hero-sub">
+      Interactive dashboard built from CSO Environmental Accounts EAA17 (2009–2023).
+      Explore sectoral trends, gas composition, and structural change across all NACE sectors.
+    </p>
+  </div>
+</header>
+
+<!-- INFO CARDS -->
+<section class="info-grid">
+  <div class="info-card">
+    <div class="tag">Analytical focus</div>
+    <h2>What questions does this answer?</h2>
+    <ul>
+      <li><strong>Which sectors</strong> currently emit the most GHGs?</li>
+      <li><strong>How has gas composition</strong> (CO₂, CH₄, N₂O…) shifted over time?</li>
+      <li><strong>Which sectors</strong> have reduced or increased emissions the most?</li>
+      <li><strong>Which gases</strong> are driving change in specific sectors?</li>
+    </ul>
+    <p class="hint">Tip: click any bar to cross-highlight that sector across all charts. Double-click to reset.</p>
+  </div>
+  <div class="info-card">
+    <div class="tag">How to use the controls</div>
+    <h2>Interactive controls</h2>
+    <ul>
+      <li><strong>Selected Year</strong> — filters the Top Sectors bar chart</li>
+      <li><strong>Gas Type</strong> — filters the Structural Change and Scatter charts</li>
+      <li><strong>Baseline / Comparison Year</strong> — sets the two years for % change calculation</li>
+    </ul>
+    <p class="hint">The structural change chart ranks the 15 sectors with the largest absolute % shift between your two chosen years.</p>
+  </div>
+  <div class="info-card">
+    <div class="tag">Dataset &amp; processing</div>
+    <h2>Data source</h2>
+    <p><strong>Source:</strong> CSO Environmental Accounts EAA17 — GHG emissions by NACE sector and gas type (kt CO₂e), 2009–2023.</p>
+    <p style="margin-top:6px"><strong>Pre-processing:</strong> Filtered to 2009–2023, standardised column names, one record per (Year × Sector × Gas) combination. Saved as <code>eaa17_processed.csv</code> on GitHub for full reproducibility. All aggregation is done inside Vega-Lite; raw values are not modified.</p>
+  </div>
+</section>
+
+<!-- INSIGHT CHIPS -->
+<div class="insight-strip" style="margin-top:24px;">
+  <div class="insight-chip">
+    <div class="i-label">Largest emitter (2022)</div>
+    <div class="i-value">Agriculture</div>
+    <div class="i-desc">Consistently #1 every year, driven by CH₄ and N₂O from livestock</div>
+  </div>
+  <div class="insight-chip red">
+    <div class="i-label">HFC trend</div>
+    <div class="i-value">+↑ Rising</div>
+    <div class="i-desc">HFC emissions rose sharply as ozone-safe refrigerants displaced CFCs</div>
+  </div>
+  <div class="insight-chip">
+    <div class="i-label">Biggest reduction</div>
+    <div class="i-value">Electricity</div>
+    <div class="i-desc">Renewables expansion drove a steep fall in electricity sector CO₂</div>
+  </div>
+  <div class="insight-chip">
+    <div class="i-label">COVID dip</div>
+    <div class="i-value">2020</div>
+    <div class="i-desc">Sharp drop in transport and industry emissions — fully reversed by 2022</div>
+  </div>
+</div>
+
+<!-- CONTROLS (sticky) -->
+<div class="controls-wrap" style="margin-top:24px;">
+  <div class="controls-inner">
+    <span class="controls-label">Controls</span>
+    <div id="vis-controls"></div>
+  </div>
+</div>
+
+<!-- CHARTS MAIN -->
+<main class="main">
+
+  <!-- ROW 1: Total Trend (wide) + Year-on-Year change -->
+  <div class="chart-row row-2col">
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-title">Total GHG Emissions Over Time</div>
+        <div class="card-sub">All sectors combined · Paris Agreement (2015) and COVID-19 (2020) annotated</div>
+      </div>
+      <div class="vis-container" id="vis-trend"></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-title">Year-on-Year Change in Total Emissions</div>
+        <div class="card-sub">Annual % change — bars above zero mean emissions increased that year</div>
+      </div>
+      <div class="vis-container" id="vis-yoy"></div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Top Sectors bar + Gas Composition stacked area -->
+  <div class="chart-row row-2col">
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-title">Top 7 Emitting Sectors</div>
+        <div class="card-sub">For the selected year · click a bar to highlight that sector across all charts · double-click to reset</div>
+      </div>
+      <div class="vis-container" id="vis-top7"></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-title">Gas Composition Over Time</div>
+        <div class="card-sub">Share of each gas type in total national GHG emissions</div>
+      </div>
+      <div class="vis-container" id="vis-gas"></div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Structural Change bar (tall) + Scatter -->
+  <div class="chart-row row-2col row-charts-tall">
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-title">Structural Change: Top 15 Sectors by % Shift</div>
+        <div class="card-sub">Between selected baseline and comparison year · filtered by gas type · green = reduced · red = increased</div>
+      </div>
+      <div class="vis-container" id="vis-structural"></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-title">Sector size vs % change</div>
+        <div class="card-sub">One dot per sector: horizontal = baseline emissions, vertical = % change. Green = reduced, red = increased; line at 0%</div>
+      </div>
+      <div class="vis-container" id="vis-scatter"></div>
+    </div>
+  </div>
+
+  <!-- ROW 4: Emissions heatmap by sector × year (new!) -->
+  <div class="chart-row row-1col">
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-title">Sectoral Emissions Heatmap (2009–2023)</div>
+        <div class="card-sub">Top 20 sectors by average emissions · darker green = higher absolute emissions · Total GHG · hover for exact value</div>
+      </div>
+      <div class="vis-container" id="vis-heatmap"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  Data: CSO Environmental Accounts EAA17 · Processed dataset available on GitHub ·
+  Built with Vega-Lite 6 · Dashboard for Information Visualization Assignment 2 by Laura González Calleja
+</footer>
+
+
+
+<script>
+const DATA_URL = "https://raw.githubusercontent.com/laauuugc/Assignment-2-Original-Information-Visualization/refs/heads/main/eaa17_processed.csv";
+
+const CONFIG = {
+  font: "'DM Sans', system-ui, sans-serif",
+  axis: {
+    gridColor: "#e5e7eb", gridOpacity: 0.7,
+    domainColor: "#d1d5db", tickColor: "#d1d5db",
+    labelFontSize: 11, titleFontSize: 11.5,
+    titleColor: "#374151", labelColor: "#6b7280", titlePadding: 8
   },
-  "data": {
-    "url": "https://raw.githubusercontent.com/laauuugc/Assignment-2-Original-Information-Visualization/refs/heads/main/eaa17_processed.csv",
-    "format": {"type": "csv"}
-  },
-  "config": {
-    "font": "system-ui, sans-serif",
-    "axis": {
-      "gridColor": "#e5e7eb",
-      "gridOpacity": 0.8,
-      "domainColor": "#d1d5db",
-      "tickColor": "#d1d5db",
-      "labelFontSize": 11,
-      "titleFontSize": 12,
-      "titleColor": "#374151",
-      "labelColor": "#6b7280",
-      "titlePadding": 8
-    },
-    "view": {"stroke": "transparent", "fill": "#ffffff"},
-    "title": {
-      "fontSize": 13,
-      "fontWeight": 600,
-      "color": "#1f2937",
-      "anchor": "start",
-      "dy": -4
-    },
-    "legend": {
-      "labelFontSize": 11,
-      "titleFontSize": 12,
-      "titleColor": "#374151",
-      "labelColor": "#4b5563",
-      "padding": 6,
-      "columnPadding": 10,
-      "symbolSize": 120
-    },
-    "mark": {"tooltip": true}
-  },
-  "params": [
-    {
-      "name": "year_select",
-      "value": 2022,
-      "bind": {
-        "input": "range",
-        "min": 2009,
-        "max": 2023,
-        "step": 1,
-        "name": "Selected Year: "
-      }
-    },
-    {
-      "name": "gas_filter",
-      "value": "Total greenhouse gases in CO2 equivalent (GHG)",
-      "bind": {
-        "input": "select",
-        "options": [
-          "Total greenhouse gases in CO2 equivalent (GHG)",
-          "Carbon dioxide (CO2)",
-          "Methane in CO2 equivalent (CH4_CO2E)",
-          "Nitrous oxide in CO2 equivalent (N2O_CO2E)",
-          "Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)",
-          "Perfluorocarbons in CO2 equivalent (PFC_CO2E)",
-          "Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)",
-          "Carbon dioxide from biomass (CO2_BIO)",
-          "Methane (CH4)",
-          "Nitrous oxide (N2O)"
-        ],
-        "labels": [
-          "Total GHG (CO2 equivalent)",
-          "Carbon Dioxide (CO2)",
-          "Methane (CH4 in CO2e)",
-          "Nitrous Oxide (N2O in CO2e)",
-          "HFCs (CO2 equivalent)",
-          "PFCs (CO2 equivalent)",
-          "SF6 & NF3 (CO2 equivalent)",
-          "CO2 from Biomass",
-          "Methane (CH4)",
-          "Nitrous Oxide (N2O)"
-        ],
-        "name": "Gas Type: "
-      }
-    }
-  ],
-  "hconcat": [
-    {
-      "vconcat": [
-        {
-          "title": {
-            "text": "Total GHG Emissions Over Time (All Sectors)",
-            "subtitle": "Excluding total GHG label to avoid double-counting",
-            "anchor": "middle"
-          },
-          "width": 460,
-          "height": 160,
-          "layer": [
-            {
-              "mark": {"type": "line", "color": "#065f46", "strokeWidth": 2},
-              "transform": [
-                {
-                  "filter": "datum['Statistic Label'] == 'Total greenhouse gases in CO2 equivalent (GHG)'"
-                },
-                {
-                  "filter": "datum['NACE Sector'] == 'Total NACE and Household activities'"
-                }
-              ],
-              "encoding": {
-                "x": {
-                  "field": "Year",
-                  "type": "quantitative",
-                  "axis": {"tickCount": 15, "format": "d", "title": null}
-                },
-                "y": {
-                  "aggregate": "sum",
-                  "field": "Value",
-                  "type": "quantitative",
-                  "title": "Total Emissions (kt CO2 equivalent)",
-                  "axis": {"format": ",.0f"}
-                },
-                "tooltip": [
-                  {"field": "Year", "type": "quantitative", "title": "Year"},
-                  {
-                    "aggregate": "sum",
-                    "field": "Value",
-                    "type": "quantitative",
-                    "title": "Total GHG (kt CO2e)",
-                    "format": ",.0f"
-                  }
-                ]
-              }
-            },
-            {
-              "mark": {
-                "type": "rule",
-                "color": "#dc2626",
-                "strokeDash": [4, 3],
-                "strokeWidth": 1.5,
-                "opacity": 0.7
-              },
-              "data": {"values": [{"year": 2015}]},
-              "encoding": {
-                "x": {"field": "year", "type": "quantitative"},
-                "tooltip": [
-                  {"field": "year", "title": "Paris Agreement Signed"}
-                ]
-              }
-            },
-            {
-              "mark": {
-                "type": "text",
-                "align": "left",
-                "dx": 3,
-                "dy": -30,
-                "fontSize": 10,
-                "color": "#dc2626",
-                "fontStyle": "italic"
-              },
-              "data": {"values": [{"year": 2015, "label": "Paris Agreement"}]},
-              "encoding": {
-                "x": {"field": "year", "type": "quantitative"},
-                "text": {"field": "label"}
-              }
-            },
-            {
-              "mark": {
-                "type": "rule",
-                "color": "#7c3aed",
-                "strokeDash": [4, 3],
-                "strokeWidth": 1.5,
-                "opacity": 0.7
-              },
-              "data": {"values": [{"year": 2020}]},
-              "encoding": {
-                "x": {"field": "year", "type": "quantitative"},
-                "tooltip": [{"field": "year", "title": "COVID-19 Pandemic"}]
-              }
-            },
-            {
-              "mark": {
-                "type": "text",
-                "align": "left",
-                "dx": 3,
-                "dy": -30,
-                "fontSize": 10,
-                "color": "#7c3aed",
-                "fontStyle": "italic"
-              },
-              "data": {"values": [{"year": 2020, "label": "COVID-19"}]},
-              "encoding": {
-                "x": {"field": "year", "type": "quantitative"},
-                "text": {"field": "label"}
-              }
-            }
-          ]
-        },
-        {
-          "title": {
-            "text": "Top 7 Emitting Sectors (Selected Year)",
-            "subtitle": "Click a bar to highlight that sector across all charts - Double-click to reset - Filter year below",
-            "anchor": "middle"
-          },
-          "width": 460,
-          "height": 160,
-          "transform": [
-            {"filter": "datum.Year == year_select"},
-            {
-              "filter": "datum['Statistic Label'] == 'Total greenhouse gases in CO2 equivalent (GHG)'"
-            },
-            {
-              "filter": "datum['NACE Sector'] != 'Total NACE activities' && datum['NACE Sector'] != 'Total NACE and Household activities' && datum['NACE Sector'] != 'Total Household activities'"
-            },
-            {
-              "aggregate": [{"op": "sum", "field": "Value", "as": "Emissions"}],
-              "groupby": ["NACE Sector"]
-            },
-            {
-              "window": [{"op": "rank", "as": "rank"}],
-              "sort": [{"field": "Emissions", "order": "descending"}]
-            },
-            {"filter": "datum.rank <= 7"}
-          ],
-          "mark": {"type": "bar", "cornerRadiusEnd": 3},
-          "encoding": {
-            "y": {
-              "field": "NACE Sector",
-              "type": "nominal",
-              "sort": "-x",
-              "axis": {"labelLimit": 200, "title": null}
-            },
-            "x": {
-              "field": "Emissions",
-              "type": "quantitative",
-              "title": "Total GHG Emissions (kt CO2 equivalent)",
-              "axis": {"format": ",.0f"}
-            },
-            "color": {
-              "condition": {"param": "sector_highlight", "value": "#065f46"},
-              "value": "#6ee7b7"
-            },
-            "opacity": {
-              "condition": {"param": "sector_highlight", "value": 1},
-              "value": 0.55
-            },
-            "tooltip": [
-              {"field": "NACE Sector", "title": "Sector"},
-              {
-                "field": "Emissions",
-                "format": ",.0f",
-                "title": "GHG Emissions (kt CO2 equivalent)"
-              },
-              {"field": "rank", "title": "Rank"}
-            ]
-          },
-          "params": [
-            {
-              "name": "sector_highlight",
-              "select": {
-                "type": "point",
-                "fields": ["NACE Sector"],
-                "on": "click",
-                "clear": "dblclick"
-              }
-            }
-          ]
-        },
-        {
-          "title": {
-            "text": "Gas Composition Over Time (Share of Total)",
-            "subtitle": "Excluding total GHG label to avoid double-counting",
-            "anchor": "middle"
-          },
-          "width": 460,
-          "height": 210,
-          "mark": {"type": "area", "stroke": "#ffffff", "strokeWidth": 0.6},
-          "transform": [
-            {
-              "filter": "datum['Statistic Label'] != 'Total greenhouse gases in CO2 equivalent (GHG)' && datum['Statistic Label'] != 'Carbon dioxide from biomass (CO2_BIO)' && datum['Statistic Label'] != 'Methane (CH4)' && datum['Statistic Label'] != 'Nitrous oxide (N2O)'"
-            },
-            {
-              "filter": "datum['NACE Sector'] == 'Total NACE and Household activities'"
-            }
-          ],
-          "encoding": {
-            "x": {
-              "field": "Year",
-              "type": "quantitative",
-              "axis": {"tickCount": 15, "format": "d", "title": "Year"}
-            },
-            "y": {
-              "aggregate": "sum",
-              "field": "Value",
-              "stack": "normalize",
-              "type": "quantitative",
-              "axis": {"format": ".0%", "title": "Share of Total GHG"}
-            },
-            "color": {
-              "field": "Statistic Label",
-              "type": "nominal",
-              "title": "Gas Type",
-              "scale": {
-                "domain": [
-                  "Carbon dioxide (CO2)",
-                  "Methane in CO2 equivalent (CH4_CO2E)",
-                  "Nitrous oxide in CO2 equivalent (N2O_CO2E)",
-                  "Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)",
-                  "Perfluorocarbons in CO2 equivalent (PFC_CO2E)",
-                  "Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)"
-                ],
-                "range": [
-                  "#065f46",
-                  "#0891b2",
-                  "#d97706",
-                  "#7c3aed",
-                  "#be123c",
-                  "#475569"
-                ]
-              },
-              "legend": {
-                "title": "Gas Type",
-                "labelLimit": 320,
-                "labelExpr": "{'Carbon dioxide (CO2)': 'CO2', 'Methane in CO2 equivalent (CH4_CO2E)': 'CH4 (CO2e)', 'Nitrous oxide in CO2 equivalent (N2O_CO2E)': 'N2O (CO2e)', 'Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)': 'HFCs (CO2e)', 'Perfluorocarbons in CO2 equivalent (PFC_CO2E)': 'PFCs (CO2e)', 'Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)': 'SF6 & NF3 (CO2e)'}[datum.label] || datum.label",
-                "orient": "bottom",
-                "columns": 3,
-                "direction": "horizontal"
-              }
-            },
-            "order": {
-              "aggregate": "sum",
-              "field": "Value",
-              "type": "quantitative",
-              "sort": "descending"
-            },
-            "tooltip": [
-              {"field": "Statistic Label", "type": "nominal", "title": "Gas"},
-              {
-                "aggregate": "sum",
-                "field": "Value",
-                "type": "quantitative",
-                "title": "Emissions (kt CO2 equivalent)",
-                "format": ",.0f"
-              },
-              {"field": "Year", "type": "quantitative"}
-            ]
-          }
-        }
-      ],
-      "spacing": 28
-    },
-    {
-      "vconcat": [
-        {
-          "title": {
-            "text": "Structural Change: % Change vs. 2009 Baseline",
-            "subtitle": "Red = increased - Green = decreased - Filter gas type below",
-            "anchor": "middle"
-          },
-          "width": 400,
-          "height": 725,
-          "transform": [
-            {"filter": "datum['Statistic Label'] == gas_filter"},
-            {
-              "filter": "datum['NACE Sector'] != 'Total NACE activities' && datum['NACE Sector'] != 'Total NACE and Household activities' && datum['NACE Sector'] != 'Total Household activities'"
-            },
-            {
-              "aggregate": [{"op": "sum", "field": "Value", "as": "Emissions"}],
-              "groupby": ["NACE Sector", "Year"]
-            },
-            {
-              "window": [
-                {"op": "first_value", "field": "Emissions", "as": "Start"},
-                {"op": "last_value", "field": "Emissions", "as": "End"}
-              ],
-              "groupby": ["NACE Sector"],
-              "sort": [{"field": "Year"}],
-              "frame": [null, null]
-            },
-            {
-              "calculate": "datum.Start == 0 ? 0 : (datum.End - datum.Start) / datum.Start * 100",
-              "as": "PercentChange"
-            },
-            {
-              "window": [{"op": "rank", "as": "rank"}],
-              "sort": [{"field": "PercentChange", "order": "descending"}]
-            }
-          ],
-          "layer": [
-            {
-              "mark": {"type": "rule", "color": "#9ca3af", "strokeWidth": 1},
-              "encoding": {"x": {"datum": 0}}
-            },
-            {
-              "mark": {"type": "bar", "cornerRadiusEnd": 3},
-              "encoding": {
-                "y": {
-                  "field": "NACE Sector",
-                  "type": "nominal",
-                  "sort": {"field": "PercentChange", "order": "descending"},
-                  "axis": {
-                    "labelLimit": 220,
-                    "title": null,
-                    "ticks": false,
-                    "domain": false,
-                    "labelFontSize": 10
-                  }
-                },
-                "x": {
-                  "field": "PercentChange",
-                  "type": "quantitative",
-                  "title": "% Change from 2009 to 2023",
-                  "axis": {
-                    "format": ".0f",
-                    "labelExpr": "datum.value + '%'",
-                    "grid": true,
-                    "gridColor": "#e5e7eb",
-                    "gridOpacity": 0.9,
-                    "gridDash": [3, 2]
-                  }
-                },
-                "color": {
-                  "condition": [
-                    {"test": "datum.PercentChange < 0", "value": "#065f46"}
-                  ],
-                  "value": "#b91c1c"
-                },
-                "opacity": {
-                  "condition": {"param": "sector_highlight", "value": 1},
-                  "value": 0.45
-                },
-                "tooltip": [
-                  {"field": "NACE Sector", "title": "Sector"},
-                  {
-                    "field": "PercentChange",
-                    "format": ".1f",
-                    "title": "% Change (2009 to 2023)"
-                  },
-                  {
-                    "field": "Start",
-                    "format": ",.0f",
-                    "title": "2009 Emissions (kt)"
-                  },
-                  {
-                    "field": "End",
-                    "format": ",.0f",
-                    "title": "2023 Emissions (kt)"
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      ],
-      "spacing": 28
-    }
-  ],
-  "spacing": 36
+  view: { stroke: "transparent", fill: "#ffffff" },
+  title: { fontSize: 13, fontWeight: 600, color: "#1f2937", anchor: "start", dy: -4 },
+  legend: { labelFontSize: 11, titleFontSize: 11.5, titleColor: "#374151",
+            labelColor: "#4b5563", padding: 6, columnPadding: 10, symbolSize: 100 },
+  mark: { tooltip: true }
 };
-    vegaEmbed("#vis", spec, {mode: "vega-lite"}).then(console.log).catch(console.warn);
-  </script>
+
+const SF = "datum['NACE Sector'] != 'Total NACE activities' && datum['NACE Sector'] != 'Total NACE and Household activities' && datum['NACE Sector'] != 'Total Household activities'";
+
+// ── PARAMS WITH BIND (render UI widgets) ──────────────────────────────
+const P_YEAR = { name:"year_select", value:2022,
+  bind:{ input:"range", min:2009, max:2023, step:1, name:"Selected Year: " }};
+
+const P_GAS = { name:"gas_filter",
+  value:"Total greenhouse gases in CO2 equivalent (GHG)",
+  bind:{ input:"select",
+    options:["Total greenhouse gases in CO2 equivalent (GHG)","Carbon dioxide (CO2)","Methane in CO2 equivalent (CH4_CO2E)","Nitrous oxide in CO2 equivalent (N2O_CO2E)","Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)","Perfluorocarbons in CO2 equivalent (PFC_CO2E)","Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)","Carbon dioxide from biomass (CO2_BIO)","Methane (CH4)","Nitrous oxide (N2O)"],
+    labels:["Total GHG (CO₂e)","Carbon Dioxide (CO₂)","Methane (CH₄ in CO₂e)","Nitrous Oxide (N₂O in CO₂e)","HFCs (CO₂e)","PFCs (CO₂e)","SF₆ & NF₃ (CO₂e)","CO₂ from Biomass","Methane (CH₄)","Nitrous Oxide (N₂O)"],
+    name:"Gas Type: " }};
+
+const P_BASE = { name:"baseline_year", value:2009,
+  bind:{ input:"select",
+    options:[2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022],
+    name:"Baseline Year: " }};
+
+const P_CMP = { name:"compare_year", value:2023,
+  bind:{ input:"select",
+    options:[2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023],
+    name:"Comparison Year: " }};
+
+const P_SECTOR = { name:"sector_highlight",
+  select:{ type:"point", fields:["NACE Sector"], on:"click", clear:"dblclick" }};
+
+// ── PARAM STUBS — signal only, NO bind, NO UI widgets ─────────────────
+// Used in charts that RECEIVE signals but must not render their own controls
+const S_GAS  = { name:"gas_filter",      value:"Total greenhouse gases in CO2 equivalent (GHG)" };
+const S_BASE = { name:"baseline_year",   value:2009 };
+const S_CMP  = { name:"compare_year",    value:2023 };
+const S_YEAR = { name:"year_select",     value:2022 };
+
+const EMBED_OPTS = { mode:"vega-lite", actions:false, renderer:"svg" };
+
+// ══════════════════════════════════════════════════════════════════════
+// 1. CONTROLS WIDGET — ONLY source of UI widgets
+// ══════════════════════════════════════════════════════════════════════
+const specControls = {
+  $schema:"https://vega.github.io/schema/vega-lite/v6.json",
+  background:"transparent", width:1, height:1,
+  data:{ values:[{}] },
+  params:[ P_YEAR, P_GAS, P_BASE, P_CMP ],
+  mark:{ type:"point", opacity:0 },
+  encoding:{}
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// 2. TOTAL TREND — no params at all (pure display, no controls)
+// ══════════════════════════════════════════════════════════════════════
+const specTrend = {
+  $schema:"https://vega.github.io/schema/vega-lite/v6.json",
+  background:"#ffffff", width:"container", height:210,
+  data:{ url:DATA_URL, format:{type:"csv"} },
+  config:CONFIG,
+  layer:[
+    {
+      mark:{ type:"line", color:"#065f46", strokeWidth:2.5 },
+      transform:[
+        { filter:"datum['Statistic Label'] == 'Total greenhouse gases in CO2 equivalent (GHG)'" },
+        { filter:"datum['NACE Sector'] == 'Total NACE and Household activities'" }
+      ],
+      encoding:{
+        x:{ field:"Year", type:"quantitative", axis:{ tickCount:15, format:"d", title:null } },
+        y:{ aggregate:"sum", field:"Value", type:"quantitative",
+            title:"Total Emissions (kt CO₂e)", axis:{ format:",.0f" } },
+        tooltip:[
+          { field:"Year", type:"quantitative", title:"Year" },
+          { aggregate:"sum", field:"Value", type:"quantitative",
+            title:"Total GHG (kt CO₂e)", format:",.0f" }
+        ]
+      }
+    },
+    { mark:{ type:"rule", color:"#dc2626", strokeDash:[4,3], strokeWidth:1.5, opacity:0.7 },
+      data:{ values:[{year:2015}] },
+      encoding:{ x:{ field:"year", type:"quantitative" },
+                 tooltip:[{field:"year", title:"Paris Agreement Signed"}] } },
+    { mark:{ type:"text", align:"left", dx:4, dy:-38, fontSize:10,
+             color:"#dc2626", fontStyle:"italic" },
+      data:{ values:[{year:2015, label:"Paris Agreement"}] },
+      encoding:{ x:{ field:"year", type:"quantitative" }, text:{ field:"label" } } },
+    { mark:{ type:"rule", color:"#7c3aed", strokeDash:[4,3], strokeWidth:1.5, opacity:0.7 },
+      data:{ values:[{year:2020}] },
+      encoding:{ x:{ field:"year", type:"quantitative" },
+                 tooltip:[{field:"year", title:"COVID-19 Pandemic"}] } },
+    { mark:{ type:"text", align:"left", dx:4, dy:-38, fontSize:10,
+             color:"#7c3aed", fontStyle:"italic" },
+      data:{ values:[{year:2020, label:"COVID-19"}] },
+      encoding:{ x:{ field:"year", type:"quantitative" }, text:{ field:"label" } } }
+  ]
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// 3. YEAR-ON-YEAR % CHANGE — no params needed
+// ══════════════════════════════════════════════════════════════════════
+const specYoY = {
+  $schema:"https://vega.github.io/schema/vega-lite/v6.json",
+  background:"#ffffff", width:"container", height:210,
+  data:{ url:DATA_URL, format:{type:"csv"} },
+  config:CONFIG,
+  transform:[
+    { filter:"datum['Statistic Label'] == 'Total greenhouse gases in CO2 equivalent (GHG)'" },
+    { filter:"datum['NACE Sector'] == 'Total NACE and Household activities'" },
+    { aggregate:[{ op:"sum", field:"Value", as:"Total" }], groupby:["Year"] },
+    { sort:[{ field:"Year" }],
+      window:[{ op:"lag", field:"Total", as:"PrevTotal", param:1 }], frame:[null,0] },
+    { filter:"datum.PrevTotal != null && datum.PrevTotal > 0" },
+    { calculate:"(datum.Total - datum.PrevTotal) / datum.PrevTotal * 100", as:"YoY" }
+  ],
+  layer:[
+    { mark:{ type:"rule", color:"#9ca3af", strokeWidth:1 }, encoding:{ y:{ datum:0 } } },
+    {
+      mark:{ type:"bar", cornerRadiusEnd:2 },
+      encoding:{
+        x:{ field:"Year", type:"ordinal", axis:{ labelAngle:0, title:null } },
+        y:{ field:"YoY", type:"quantitative", title:"YoY Change (%)",
+            axis:{ format:".1f", labelExpr:"datum.value + '%'" } },
+        color:{ condition:[{ test:"datum.YoY < 0", value:"#065f46" }], value:"#b91c1c" },
+        tooltip:[
+          { field:"Year", title:"Year" },
+          { field:"YoY", format:".2f", title:"YoY Change (%)" },
+          { field:"Total", format:",.0f", title:"Total Emissions (kt)" }
+        ]
+      }
+    }
+  ]
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// 4. TOP 7 SECTORS — P_YEAR (with bind) + P_SECTOR
+// ══════════════════════════════════════════════════════════════════════
+const specTop7 = {
+  $schema:"https://vega.github.io/schema/vega-lite/v6.json",
+  background:"#ffffff", width:"container", height:230,
+  data:{ url:DATA_URL, format:{type:"csv"} },
+  config:CONFIG,
+  params:[ S_YEAR, P_SECTOR ],
+  transform:[
+    { filter:"datum.Year == year_select" },
+    { filter:"datum['Statistic Label'] == 'Total greenhouse gases in CO2 equivalent (GHG)'" },
+    { filter:SF },
+    { aggregate:[{ op:"sum", field:"Value", as:"Emissions" }], groupby:["NACE Sector"] },
+    { window:[{ op:"rank", as:"rank" }], sort:[{ field:"Emissions", order:"descending" }] },
+    { filter:"datum.rank <= 7" }
+  ],
+  mark:{ type:"bar", cornerRadiusEnd:3 },
+  encoding:{
+    y:{ field:"NACE Sector", type:"nominal", sort:"-x",
+        axis:{ labelLimit:210, title:null, ticks:false, domain:false, labelFontSize:10.5 } },
+    x:{ field:"Emissions", type:"quantitative",
+        title:"GHG Emissions (kt CO₂e)", axis:{ format:",.0f" } },
+    color:{ condition:{ param:"sector_highlight", value:"#065f46" }, value:"#6ee7b7" },
+    opacity:{ condition:{ param:"sector_highlight", value:1 }, value:0.55 },
+    tooltip:[
+      { field:"NACE Sector", title:"Sector" },
+      { field:"Emissions", format:",.0f", title:"GHG Emissions (kt CO₂e)" },
+      { field:"rank", title:"Rank" }
+    ]
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// 5. GAS COMPOSITION — static
+// ══════════════════════════════════════════════════════════════════════
+const specGas = {
+  $schema:"https://vega.github.io/schema/vega-lite/v6.json",
+  background:"#ffffff", width:"container", height:230,
+  data:{ url:DATA_URL, format:{type:"csv"} },
+  config:CONFIG,
+  transform:[
+    { filter:"datum['Statistic Label'] != 'Total greenhouse gases in CO2 equivalent (GHG)' && datum['Statistic Label'] != 'Carbon dioxide from biomass (CO2_BIO)' && datum['Statistic Label'] != 'Methane (CH4)' && datum['Statistic Label'] != 'Nitrous oxide (N2O)'" },
+    { filter:"datum['NACE Sector'] == 'Total NACE and Household activities'" }
+  ],
+  mark:{ type:"area", stroke:"#ffffff", strokeWidth:0.6 },
+  encoding:{
+    x:{ field:"Year", type:"quantitative", axis:{ tickCount:15, format:"d", title:"Year" } },
+    y:{ aggregate:"sum", field:"Value", stack:"normalize", type:"quantitative",
+        axis:{ format:".0%", title:"Share of Total GHG" } },
+    color:{
+      field:"Statistic Label", type:"nominal", title:"Gas Type",
+      scale:{
+        domain:["Carbon dioxide (CO2)","Methane in CO2 equivalent (CH4_CO2E)","Nitrous oxide in CO2 equivalent (N2O_CO2E)","Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)","Perfluorocarbons in CO2 equivalent (PFC_CO2E)","Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)"],
+        range:["#065f46","#0891b2","#d97706","#7c3aed","#be123c","#475569"]
+      },
+      legend:{
+        title:"Gas Type", labelLimit:220,
+        labelExpr:"({'Carbon dioxide (CO2)': 'CO₂', 'Methane in CO2 equivalent (CH4_CO2E)': 'CH₄ (CO₂e)', 'Nitrous oxide in CO2 equivalent (N2O_CO2E)': 'N₂O (CO₂e)', 'Hydrofluorocarbons in CO2 equivalent (HFC_CO2E)': 'HFCs', 'Perfluorocarbons in CO2 equivalent (PFC_CO2E)': 'PFCs', 'Sulphur hexafluoride and nitrogen trifluoride in CO2 equivalent (NF3_SF6_CO2E)': 'SF₆ & NF₃'})[datum.label] || datum.label",
+        orient:"bottom", columns:3, direction:"horizontal"
+      }
+    },
+    order:{ aggregate:"sum", field:"Value", type:"quantitative", sort:"descending" },
+    tooltip:[
+      { field:"Statistic Label", type:"nominal", title:"Gas" },
+      { aggregate:"sum", field:"Value", type:"quantitative",
+        title:"Emissions (kt CO₂e)", format:",.0f" },
+      { field:"Year", type:"quantitative" }
+    ]
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// 6. STRUCTURAL CHANGE — all sectors, including outliers; data-driven x scale
+// ══════════════════════════════════════════════════════════════════════
+const specStructural = {
+  $schema:"https://vega.github.io/schema/vega-lite/v6.json",
+  background:"#ffffff",
+  width:380,
+  height:480,
+  padding:{ top:10, right:28, bottom:24, left:4 },
+  data:{ url:DATA_URL, format:{type:"csv"} },
+  config:CONFIG,
+  params:[ S_GAS, S_BASE, S_CMP ],
+  transform:[
+    { filter:"datum['Statistic Label'] == gas_filter" },
+    { filter:SF },
+    { aggregate:[{ op:"sum", field:"Value", as:"Emissions" }], groupby:["NACE Sector","Year"] },
+    { calculate:"datum.Year == baseline_year ? datum.Emissions : null", as:"BC" },
+    { calculate:"datum.Year == compare_year  ? datum.Emissions : null", as:"CC" },
+    { aggregate:[
+        { op:"max", field:"BC", as:"Start" },
+        { op:"max", field:"CC", as:"End" }
+      ], groupby:["NACE Sector"] },
+    { calculate:"datum.Start == null || datum.Start == 0 ? null : (datum.End - datum.Start) / datum.Start * 100",
+      as:"PercentChange" },
+      { calculate:"abs(datum.PercentChange)", as:"AbsChange" },
+    { window:[{ op:"rank", as:"rank" }], sort:[{ field:"AbsChange", order:"descending" }] },
+    { filter:"datum.rank <= 15" },
+    { filter:"datum.PercentChange != null" }
+  ],
+  layer:[
+    { mark:{ type:"rule", color:"#94a3b8", strokeWidth:1 },
+      encoding:{ x:{ datum:0 } } },
+    {
+      mark:{ type:"bar", cornerRadiusEnd:3 },
+      encoding:{
+        y:{ field:"NACE Sector", type:"nominal",
+            sort:{ field:"PercentChange", order:"descending" },
+            scale:{ rangeStep:26, paddingInner:0.1, paddingOuter:0.1 },
+            axis:{ labelLimit:200, title:null, ticks:false, domain:true, labelFontSize:10 } },
+        x:{ field:"PercentChange", type:"quantitative",
+            title:"% Change between selected years",
+            axis:{ format:".0f", labelExpr:"datum.value + '%'",
+                   grid:true, gridColor:"#e5e7eb", gridOpacity:0.8 } },
+        color:{ condition:[{ test:"datum.PercentChange < 0", value:"#065f46" }], value:"#b91c1c" },
+        tooltip:[
+          { field:"NACE Sector", title:"Sector" },
+          { field:"PercentChange", format:".1f", title:"% Change" },
+          { field:"Start", format:",.0f", title:"Baseline (kt CO₂e)" },
+          { field:"End", format:",.0f", title:"Comparison (kt CO₂e)" }
+        ]
+      }
+    }
+  ]
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// 7. SECTOR % CHANGE DOT PLOT — all sectors including outliers; data-driven scales
+// ══════════════════════════════════════════════════════════════════════
+const specScatter = {
+  $schema:"https://vega.github.io/schema/vega-lite/v6.json",
+  background:"#ffffff",
+  width:480,
+  height:480,
+  padding:{ top:10, right:28, bottom:24, left:44 },
+  data:{ url:DATA_URL, format:{type:"csv"} },
+  config:CONFIG,
+  params:[ S_GAS, S_BASE, S_CMP ],
+  transform:[
+    { filter:"datum['Statistic Label'] == gas_filter" },
+    { filter:SF },
+    { aggregate:[{ op:"sum", field:"Value", as:"Emissions" }], groupby:["NACE Sector","Year"] },
+    { calculate:"datum.Year == baseline_year ? datum.Emissions : null", as:"BC" },
+    { calculate:"datum.Year == compare_year  ? datum.Emissions : null", as:"CC" },
+    { aggregate:[
+        { op:"max", field:"BC", as:"Start" },
+        { op:"max", field:"CC", as:"End" }
+      ], groupby:["NACE Sector"] },
+    { calculate:"datum.Start == null || datum.Start == 0 ? null : (datum.End - datum.Start) / datum.Start * 100",
+      as:"PercentChange" },
+    { filter:"datum.PercentChange != null" }
+  ],
+  layer:[
+    { mark:{ type:"rule", color:"#94a3b8", strokeWidth:1, strokeDash:[3,3] },
+      encoding:{ y:{ datum:0 } } },
+    {
+      mark:{ type:"circle", size:85, stroke:"#fff", strokeWidth:1.5 },
+      encoding:{
+        x:{ field:"Start", type:"quantitative",
+            title:"Baseline year emissions (kt CO₂e)", axis:{ format:",.0f" } },
+        y:{ field:"PercentChange", type:"quantitative",
+            title:"% Change (baseline → comparison year)",
+            axis:{ format:".0f", labelExpr:"datum.value + '%'" } },
+        color:{ condition:[{ test:"datum.PercentChange < 0", value:"#065f46" }], value:"#b91c1c" },
+        tooltip:[
+          { field:"NACE Sector", title:"Sector" },
+          { field:"Start", format:",.0f", title:"Baseline (kt CO₂e)" },
+          { field:"End", format:",.0f", title:"Comparison (kt CO₂e)" },
+          { field:"PercentChange", format:".1f", title:"% Change" }
+        ]
+      }
+    }
+  ]
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// 8. HEATMAP — top 20 sectors × all years, static
+// ══════════════════════════════════════════════════════════════════════
+const specHeatmap = {
+  $schema:"https://vega.github.io/schema/vega-lite/v6.json",
+  background:"#ffffff", width:"container", height:420,
+  data:{ url:DATA_URL, format:{type:"csv"} },
+  config:CONFIG,
+  transform:[
+    { filter:"datum['Statistic Label'] == 'Total greenhouse gases in CO2 equivalent (GHG)'" },
+    { filter:SF },
+    { aggregate:[{ op:"sum", field:"Value", as:"Emissions" }], groupby:["NACE Sector","Year"] },
+    { window:[{ op:"mean", field:"Emissions", as:"AvgEmissions" }],
+      groupby:["NACE Sector"], frame:[null,null] },
+    { window:[{ op:"dense_rank", as:"sectorRank" }],
+      sort:[{ field:"AvgEmissions", order:"descending" }], groupby:[] },
+    { filter:"datum.sectorRank <= 20" }
+  ],
+  mark:{ type:"rect", stroke:"#ffffff", strokeWidth:0.6 },
+  encoding:{
+    x:{ field:"Year", type:"ordinal", axis:{ labelAngle:0, title:null } },
+    y:{ field:"NACE Sector", type:"nominal",
+        sort:{ op:"mean", field:"Emissions", order:"descending" },
+        axis:{ labelLimit:280, title:null, ticks:false, domain:false, labelFontSize:10.5 } },
+    color:{
+      field:"Emissions", type:"quantitative",
+      title:"Emissions (kt CO₂e)",
+      scale:{ scheme:"greens", type:"sqrt" },
+      legend:{ orient:"right", titleOrient:"top", format:",.0f" }
+    },
+    tooltip:[
+      { field:"NACE Sector", title:"Sector" },
+      { field:"Year", title:"Year" },
+      { field:"Emissions", format:",.0f", title:"Emissions (kt CO₂e)" }
+    ]
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// EMBED + SYNC
+// Controls widget is the SOLE source of user input.
+// All other charts receive signal updates via pushSignal().
+// Charts with S_xxx stub params have no bind, so they never render
+// duplicate controls, and their signals are initialised from defaults
+// then overridden by pushSignal on every user interaction.
+// ══════════════════════════════════════════════════════════════════════
+const allViews = {};
+
+function pushSignal(name, value) {
+  Object.entries(allViews).forEach(([id, v]) => {
+    try { v.signal(name, value).run(); } catch(_) {}
+  });
+}
+
+// 1. Embed controls
+vegaEmbed("#vis-controls", specControls, {
+  ...EMBED_OPTS,
+  padding:{ top:0, bottom:0, left:0, right:0 }
+}).then(({ view }) => {
+  allViews["controls"] = view;
+  ["year_select","gas_filter","baseline_year","compare_year"].forEach(sig => {
+    view.addSignalListener(sig, (name, value) => pushSignal(name, value));
+  });
+}).catch(console.error);
+
+// 2. Embed all charts
+[
+  ["vis-trend",      specTrend],
+  ["vis-yoy",        specYoY],
+  ["vis-top7",       specTop7],
+  ["vis-gas",        specGas],
+  ["vis-structural", specStructural],
+  ["vis-scatter",    specScatter],
+  ["vis-heatmap",    specHeatmap]
+].forEach(([id, spec]) => {
+  vegaEmbed("#" + id, spec, EMBED_OPTS).then(({ view }) => {
+    allViews[id] = view;
+    // sector_highlight broadcast: clicking Top7 bars highlights other charts
+    if (id === "vis-top7") {
+      view.addSignalListener("sector_highlight_tuple", (name, value) => {
+        pushSignal("sector_highlight_tuple", value);
+      });
+    }
+  }).catch(console.error);
+});
+</script>
 </body>
 </html>
