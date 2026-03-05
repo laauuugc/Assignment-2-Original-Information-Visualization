@@ -4,15 +4,15 @@ This repository contains the data preparation workflow for Assignment 2: Develop
 
 Repository Contents
 
-eaa17_original.csv: Original dataset downloaded from the Central Statistics Office (CSO).
+- eaa17_original.csv: Original dataset downloaded from the Central Statistics Office (CSO).
 
-eaa17_processing.ipynb: Jupyter Notebook containing all preprocessing steps and documented transformations.
+- eaa17_processing.ipynb: Jupyter Notebook containing all preprocessing steps and documented transformations.
 
-eaa17_processed.csv: Cleaned and aggregated dataset used in the Vega-Lite interactive dashboard.
+- eaa17_processed.csv: Cleaned and aggregated dataset used in the Vega-Lite interactive dashboard.
 
-visualization.html: Final fully developed interactive dashboard website to explore data insights.
+- visualization.html: Final fully developed interactive dashboard website to explore data insights.
 
-visualization.json: JSON file used in Vega-Lite to create the main elements of the final website.
+- visualization.json: JSON file used in Vega-Lite to create the main elements of the final website.
 
 Data Processing Overview
 
