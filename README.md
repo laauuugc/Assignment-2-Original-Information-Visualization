@@ -12,7 +12,7 @@ Repository Contents
 
 - visualization.html: Final fully developed interactive dashboard website to explore data insights.
 
-- visualization.json: JSON file used in Vega-Lite to create the main elements of the final website.
+- visualization.json: JSON file used initially in Vega-Lite to create the main elements of the final website.
 
 Data Processing Overview
 
