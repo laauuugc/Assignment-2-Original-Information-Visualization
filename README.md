@@ -14,6 +14,10 @@ Repository Contents
 
 - visualization.json: JSON file used initially in Vega-Lite to create the main elements of the final website.
 
+Running the dashboard
+
+No build step, no dependencies to install, just open visualisation.html in a modern browser (Chrome or Firefox work best) and you're done. The charts load automatically by fetching eaa17_processed.csv directly from this repository via the GitHub raw URL, so you'll need an internet connection the first time. If you open the file locally and the charts don't appear, it's almost certainly a CORS issue with your browser blocking the CSV fetch, the fix is to serve it from a local server instead: run python3 -m http.server in the project folder and open http://localhost:8000/visualisation.html. Once it's running, all four interactive controls in the sticky bar at the top (year slider, gas type, baseline year, and comparison year), update the relevant charts instantly with no page reload.
+
 Data Processing Overview
 
 Data manipulation was performed in Python prior to visualisation to ensure clarity, accuracy, and consistency across coordinated views.
